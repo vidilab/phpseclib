@@ -86,6 +86,7 @@ abstract class Base
      * @link http://en.wikipedia.org/wiki/Block_cipher_modes_of_operation#Output_feedback_.28OFB.29
      */
     const MODE_OFB = 4;
+    const MODE_OFB8 = 48;
     /**
      * Encrypt / decrypt using streaming mode.
      */
@@ -485,6 +486,7 @@ abstract class Base
             case self::MODE_CFB:
             case self::MODE_CFB8:
             case self::MODE_OFB:
+            case self::MODE_OFB8:
             case self::MODE_STREAM:
                 $this->mode = $mode;
                 break;
@@ -1320,6 +1322,19 @@ abstract class Base
                     if ($start = strlen($ciphertext) % $block_size) {
                         $buffer['xor'] = substr($key, $start) . $buffer['xor'];
                     }
+                }
+                break;
+            case self::MODE_OFB8:
+                $plaintext = '';
+                $len = strlen($ciphertext);
+                $xor = $this->decryptIV;
+                for ($i = 0; $i < $len; $i++) {
+                    $encXor = $this->_encryptBlock($xor);
+                    for ($j=0;$j<$block_size-1;$j++) {
+                      $xor[$j] = $xor[$j+1];
+                    }
+                    $xor[$block_size-1] = $encXor[0];
+                    $plaintext.= substr($ciphertext, $i, 1) ^ $encXor[0];
                 }
                 break;
             case self::MODE_STREAM:
