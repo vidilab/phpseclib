@@ -1003,6 +1003,19 @@ abstract class Base
                     }
                 }
                 break;
+            case self::MODE_OFB8:
+                $ciphertext = '';
+                $len = strlen($plaintext);
+                $xor = $this->decryptIV;
+                for ($i = 0; $i < $len; $i++) {
+                    $encXor = $this->_encryptBlock($xor);
+                    for ($j=0;$j<$block_size-1;$j++) {
+                      $xor[$j] = $xor[$j+1];
+                    }
+                    $xor[$block_size-1] = $encXor[0];
+                    $ciphertext .= substr($plaintext, $i, 1) ^ $encXor[0];
+                }
+                break;
             case self::MODE_STREAM:
                 $ciphertext = $this->_encryptBlock($plaintext);
                 break;
@@ -1334,7 +1347,7 @@ abstract class Base
                       $xor[$j] = $xor[$j+1];
                     }
                     $xor[$block_size-1] = $encXor[0];
-                    $plaintext.= substr($ciphertext, $i, 1) ^ $encXor[0];
+                    $plaintext .= substr($ciphertext, $i, 1) ^ $encXor[0];
                 }
                 break;
             case self::MODE_STREAM:
